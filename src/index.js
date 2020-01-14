@@ -45,7 +45,7 @@ function LinkToRoute({path, title, ...props}) {
 
 const defaultTransition = {
   duration: 0.3,
-  ease: 'linear',
+  ease: 'easeInOut',
 };
 
 function App() {
