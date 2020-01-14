@@ -18,13 +18,20 @@ const routes = [
     title: 'Dashboard',
     path: '/',
     parent: null,
-    children: [1],
+    children: [1, 4],
   },
   {
     title: 'Builder',
     path: '/builder',
     parent: 0,
-    children: [2],
+    children: [2, 3],
+  },
+  {
+    title: 'Name',
+    path: '/builder/name',
+    parent: 1,
+    children: null,
+    body: 'Set the name here.',
   },
   {
     title: 'Story',
@@ -32,6 +39,31 @@ const routes = [
     parent: 1,
     children: null,
     body: 'Set the story content here.',
+  },
+  {
+    title: 'Settings',
+    path: '/settings',
+    parent: 0,
+    children: [5, 6],
+  },
+  {
+    title: 'Language',
+    path: '/settings/language',
+    parent: 4,
+    body: 'Set the language settings here.',
+  },
+  {
+    title: 'Date & Time',
+    path: '/settings/date-and-time',
+    parent: 4,
+    body: 'Set the date and time settings here.',
+    children: [7],
+  },
+  {
+    title: 'Time Zone',
+    path: '/settings/date-and-time/timezone',
+    parent: 6,
+    body: 'Set the timezone settings here.',
   },
 ];
 
