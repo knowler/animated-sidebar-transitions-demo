@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter as Router, Link, Route, Switch} from 'react-router-dom';
 import {motion, AnimatePresence} from 'framer-motion';
@@ -53,12 +53,12 @@ function App() {
   const [direction, setDirection] = useState();
 
   // This is called when going up the tree to a parent
-  const up = React.useCallback(() => {
+  const up = useCallback(() => {
     setDirection('up');
   }, []);
 
   // This is called when going down the tree to a child
-  const down = React.useCallback(() => {
+  const down = useCallback(() => {
     setDirection('down');
   }, []);
 
