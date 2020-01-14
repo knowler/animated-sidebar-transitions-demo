@@ -111,7 +111,7 @@ function App() {
                       {children && (
                         <ul>
                           {children.map(child => (
-                            <li key={`sidebar/child${child.path}`}>
+                            <li key={`sidebar/child.${child}`}>
                               <LinkToRoute onClick={down} {...routes[child]} />
                             </li>
                           ))}
