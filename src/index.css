@@ -9,7 +9,7 @@ body {
   font-family: sans-serif;
 }
 
-#root {
+main {
   display: flex;
   min-height: 100vh;
   padding: 1rem;

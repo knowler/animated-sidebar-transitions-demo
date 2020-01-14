@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 
-export function useLogChange(value) {
+export default function(value) {
   useEffect(() => {
     console.log(value);
   }, [value]);
