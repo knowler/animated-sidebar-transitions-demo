@@ -1,9 +1,14 @@
-import React, {useCallback, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import ReactDOM from 'react-dom';
-import {BrowserRouter as Router, Link, Route, Switch} from 'react-router-dom';
-import {motion, AnimatePresence} from 'framer-motion';
-
-import {useLogChange} from './utils';
+import {
+  BrowserRouter as Router,
+  Link,
+  Route,
+  Switch,
+  useLocation,
+} from 'react-router-dom';
+import {animated} from 'react-spring';
+import {Transition} from 'react-spring/renderprops';
 
 import './index.css';
 
@@ -11,153 +16,117 @@ import './index.css';
  * Routes are a tree:
  *
  * - Each node has a parent and children
- * - Parent and child nodes are referenced by their index in the array
+ * - Parent and child nodes are referenced by their pathname
  */
-const routes = [
-  {
+const routes = {
+  '/': {
     title: 'Dashboard',
-    path: '/',
     parent: null,
-    children: [1, 4],
+    children: ['/builder', '/settings'],
   },
-  {
+  '/builder': {
     title: 'Builder',
-    path: '/builder',
-    parent: 0,
-    children: [2, 3],
+    parent: '/',
+    children: ['/builder/name', '/builder/story'],
   },
-  {
+  '/builder/name': {
     title: 'Name',
-    path: '/builder/name',
-    parent: 1,
+    parent: '/builder',
     children: null,
     body: 'Set the name here.',
   },
-  {
+  '/builder/story': {
     title: 'Story',
-    path: '/builder/story',
-    parent: 1,
+    parent: '/builder',
     children: null,
     body: 'Set the story content here.',
   },
-  {
+  '/settings': {
     title: 'Settings',
-    path: '/settings',
-    parent: 0,
-    children: [5, 6],
+    parent: '/',
+    children: ['/settings/language', '/settings/date-and-time'],
   },
-  {
+  '/settings/language': {
     title: 'Language',
-    path: '/settings/language',
-    parent: 4,
+    parent: '/settings',
     body: 'Set the language settings here.',
   },
-  {
+  '/settings/date-and-time': {
     title: 'Date & Time',
-    path: '/settings/date-and-time',
-    parent: 4,
+    parent: '/settings',
     body: 'Set the date and time settings here.',
-    children: [7],
+    children: ['/settings/date-and-time/timezone'],
   },
-  {
+  '/settings/date-and-time/timezone': {
     title: 'Time Zone',
-    path: '/settings/date-and-time/timezone',
-    parent: 6,
+    parent: '/settings/date-and-time',
     body: 'Set the timezone settings here.',
   },
-];
+};
 
-function LinkToRoute({path, title, ...props}) {
+function Sidebar() {
+  // Current router location
+  const location = useLocation();
+
+  // Store a lazy version of the current path
+  const [lazyPathname, setLazyPathname] = useState(location.pathname);
+
+  useEffect(() => {
+    setLazyPathname(location.pathname);
+  }, [location.pathname]);
+
   return (
-    <Link to={path} {...props}>
-      {title}
-    </Link>
+    <aside className="sidebar">
+      <Transition
+        items={location}
+        keys={location => location.pathname}
+        from={({pathname}) => ({
+          transform:
+            pathname === routes[lazyPathname].parent
+              ? 'translateX(-100%)'
+              : 'translateX(100%)',
+        })}
+        enter={{transform: 'translateX(0%)'}}
+        leave={({pathname}) => ({
+          transform:
+            pathname === routes[location.pathname].parent
+              ? 'translateX(-100%)'
+              : 'translateX(100%)',
+        })}
+      >
+        {item => props => (
+          <Switch location={item}>
+            {Object.entries(routes).map(
+              ([path, {body, children, parent, title}]) => (
+                <Route key={`sidebar${path}`} path={path} exact>
+                  <animated.div className="sidebar__content" style={props}>
+                    {parent && <Link to={parent}>{routes[parent].title}</Link>}
+                    <h2>{title}</h2>
+                    {children && (
+                      <ul>
+                        {children.map(child => (
+                          <li key={`sidebar/child${child}`}>
+                            <Link to={child}>{routes[child].title}</Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {body && <p>{body}</p>}
+                  </animated.div>
+                </Route>
+              ),
+            )}
+          </Switch>
+        )}
+      </Transition>
+    </aside>
   );
 }
 
-const defaultTransition = {
-  duration: 0.3,
-  ease: 'easeInOut',
-};
-
 function App() {
-  // Direction of intent
-  const [direction, setDirection] = useState();
-
-  // This is called when going up the tree to a parent
-  const up = useCallback(() => {
-    setDirection('up');
-  }, []);
-
-  // This is called when going down the tree to a child
-  const down = useCallback(() => {
-    setDirection('down');
-  }, []);
-
-  // Log the direction state
-  useLogChange(direction);
-
-  /**
-   * Variants for Motion
-   *
-   * For callback variants, the first parameter is the value of
-   * custom set on the AnimatePresence component
-   *
-   * TODO: find a better way to explain what is happening with
-   * enter and exit
-   */
-  const variants = {
-    // the param will be out of sync if we use it so, we use direction directly instead
-    enter: () => ({
-      x: {up: '-100%', down: '100%'}[direction],
-      transition: defaultTransition,
-    }),
-    // the direction will be out of sync if we use it so, we use the param instead
-    exit: intendedDirection => ({
-      x: {up: '100%', down: '-100%'}[intendedDirection],
-      transition: defaultTransition,
-    }),
-    current: {x: '0%', transition: defaultTransition},
-  };
-
   return (
     <Router>
-      <aside className="sidebar">
-        <Route
-          render={({location}) => (
-            <AnimatePresence custom={direction}>
-              <Switch location={location} key={location.pathname}>
-                {routes.map(({body, children, parent, path, title}) => (
-                  <Route key={`sidebar${path}`} path={path} exact>
-                    <motion.div
-                      className="sidebar__content"
-                      initial="enter"
-                      animate="current"
-                      exit="exit"
-                      variants={variants}
-                    >
-                      {typeof parent === 'number' && (
-                        <LinkToRoute onClick={up} {...routes[parent]} />
-                      )}
-                      <h2>{title}</h2>
-                      {children && (
-                        <ul>
-                          {children.map(child => (
-                            <li key={`sidebar/child.${child}`}>
-                              <LinkToRoute onClick={down} {...routes[child]} />
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      {body && <p>{body}</p>}
-                    </motion.div>
-                  </Route>
-                ))}
-              </Switch>
-            </AnimatePresence>
-          )}
-        />
-      </aside>
+      <Sidebar />
     </Router>
   );
 }
