@@ -7,8 +7,7 @@ import {
   Switch,
   useLocation,
 } from 'react-router-dom';
-import {animated} from 'react-spring';
-import {Transition} from 'react-spring/renderprops';
+import {animated, useTransition} from 'react-spring';
 
 import './index.css';
 
@@ -75,52 +74,50 @@ function Sidebar() {
     setLazyPathname(location.pathname);
   }, [location.pathname]);
 
+  // React Spring transitions
+  const transitions = useTransition(location, location => location.pathname, {
+    initial: {transform: 'translateX(0%)'},
+    from: ({pathname}) => ({
+      transform:
+        pathname === routes[lazyPathname].parent
+          ? 'translateX(-100%)'
+          : 'translateX(100%)',
+    }),
+    enter: {transform: 'translateX(0%)'},
+    leave: ({pathname}) => ({
+      transform:
+        pathname === routes[location.pathname].parent
+          ? 'translateX(-100%)'
+          : 'translateX(100%)',
+    }),
+  });
+
   return (
     <aside className="sidebar">
-      <Transition
-        items={location}
-        keys={location => location.pathname}
-        from={({pathname}) =>
-          pathname !== lazyPathname && {
-            transform:
-              pathname === routes[lazyPathname].parent
-                ? 'translateX(-100%)'
-                : 'translateX(100%)',
-          }
-        }
-        enter={{transform: 'translateX(0%)'}}
-        leave={({pathname}) => ({
-          transform:
-            pathname === routes[location.pathname].parent
-              ? 'translateX(-100%)'
-              : 'translateX(100%)',
-        })}
-      >
-        {item => props => (
-          <Switch location={item}>
-            {Object.entries(routes).map(
-              ([path, {body, children, parent, title}]) => (
-                <Route key={`sidebar${path}`} path={path} exact>
-                  <animated.div className="sidebar__content" style={props}>
-                    {parent && <Link to={parent}>{routes[parent].title}</Link>}
-                    <h2>{title}</h2>
-                    {children && (
-                      <ul>
-                        {children.map(child => (
-                          <li key={`sidebar/child${child}`}>
-                            <Link to={child}>{routes[child].title}</Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {body && <p>{body}</p>}
-                  </animated.div>
-                </Route>
-              ),
-            )}
-          </Switch>
-        )}
-      </Transition>
+      {transitions.map(({item, props, key}) => (
+        <Switch location={item} key={key}>
+          {Object.entries(routes).map(
+            ([path, {body, children, parent, title}]) => (
+              <Route key={`sidebar${path}`} path={path} exact>
+                <animated.div className="sidebar__content" style={props}>
+                  {parent && <Link to={parent}>{routes[parent].title}</Link>}
+                  <h2>{title}</h2>
+                  {children && (
+                    <ul>
+                      {children.map(child => (
+                        <li key={`sidebar/child${child}`}>
+                          <Link to={child}>{routes[child].title}</Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {body && <p>{body}</p>}
+                </animated.div>
+              </Route>
+            ),
+          )}
+        </Switch>
+      ))}
     </aside>
   );
 }
