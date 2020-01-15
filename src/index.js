@@ -80,12 +80,14 @@ function Sidebar() {
       <Transition
         items={location}
         keys={location => location.pathname}
-        from={({pathname}) => ({
-          transform:
-            pathname === routes[lazyPathname].parent
-              ? 'translateX(-100%)'
-              : 'translateX(100%)',
-        })}
+        from={({pathname}) =>
+          pathname !== lazyPathname && {
+            transform:
+              pathname === routes[lazyPathname].parent
+                ? 'translateX(-100%)'
+                : 'translateX(100%)',
+          }
+        }
         enter={{transform: 'translateX(0%)'}}
         leave={({pathname}) => ({
           transform:
