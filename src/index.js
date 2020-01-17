@@ -65,6 +65,30 @@ const routes = {
   },
 };
 
+function BackButton() {
+  const location = useLocation();
+  const parentPath = routes[location.pathname].parent;
+  const parent = routes[parentPath];
+
+  if (parent) {
+    return (
+      <Link
+        to={parentPath}
+        style={{
+          position: 'absolute',
+          top: '1rem',
+          left: '1rem',
+          zIndex: 1,
+        }}
+      >
+        ← {parent.title}
+      </Link>
+    );
+  }
+
+  return null;
+}
+
 function Sidebar() {
   // Current router location
   const location = useLocation();
@@ -90,13 +114,16 @@ function Sidebar() {
 
   return (
     <aside className="sidebar">
+      <BackButton />
       {transitions.map(({item, props, key}) => (
         <Switch location={item} key={key}>
           {Object.entries(routes).map(
             ([path, {body, children, parent, title}]) => (
               <Route key={`sidebar${path}`} path={path} exact>
-                <animated.div className="sidebar__content" style={props}>
-                  {parent && <Link to={parent}>{routes[parent].title}</Link>}
+                <animated.div
+                  className="sidebar__content"
+                  style={{marginTop: parent ? '2rem' : null, ...props}}
+                >
                   <h2>{title}</h2>
                   {children && (
                     <ul>
