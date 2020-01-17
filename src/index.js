@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import {
   BrowserRouter as Router,
@@ -8,6 +8,8 @@ import {
   useLocation,
 } from 'react-router-dom';
 import {animated, useTransition} from 'react-spring';
+
+import {usePrevious} from './utils';
 
 import './index.css';
 
@@ -66,20 +68,14 @@ const routes = {
 function Sidebar() {
   // Current router location
   const location = useLocation();
-
-  // Store a lazy version of the current path
-  const [lazyPathname, setLazyPathname] = useState(location.pathname);
-
-  useEffect(() => {
-    setLazyPathname(location.pathname);
-  }, [location.pathname]);
+  const prevLocation = usePrevious(location);
 
   // React Spring transitions
   const transitions = useTransition(location, location => location.pathname, {
     initial: {transform: 'translateX(0%)'},
     from: ({pathname}) => ({
       transform:
-        pathname === routes[lazyPathname].parent
+        pathname === routes[prevLocation.pathname].parent
           ? 'translateX(-100%)'
           : 'translateX(100%)',
     }),
